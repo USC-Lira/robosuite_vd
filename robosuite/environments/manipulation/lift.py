@@ -426,4 +426,3 @@ class Lift(SingleArmEnv):
 
         # cube is higher than the table top above a margin
         return cube_height > table_height + 0.04
-

@@ -295,6 +295,15 @@ class Lifteither(SingleArmEnv):
             tex_attrib=tex_attrib,
             mat_attrib=mat_attrib,
         )
+
+        greenwood = CustomMaterial(
+            texture="WoodGreen",
+            tex_name="greenwood",
+            mat_name="greenwood_mat",
+            tex_attrib=tex_attrib,
+            mat_attrib=mat_attrib,
+        )
+
         self.cube = BoxObject(
             name="cube",
             size_min=[0.020, 0.020, 0.020],  # [0.015, 0.015, 0.015],
@@ -308,7 +317,7 @@ class Lifteither(SingleArmEnv):
             size_min=[0.020, 0.020, 0.020],  # [0.015, 0.015, 0.015],
             size_max=[0.022, 0.022, 0.022],  # [0.018, 0.018, 0.018])
             rgba=[1, 0, 0, 1],
-            material=redwood,
+            material=greenwood,
         )
 
         cubes = [self.cube, self.cube2]
@@ -318,7 +327,7 @@ class Lifteither(SingleArmEnv):
             self.placement_initializer.reset()
             self.placement_initializer.add_objects(cubes)
         else:
-            self.placement_initializer = UniformRandomSampler(
+            self.placement_initializer = UniformRandomSampler(  # Change here for bi-modal, one block on the left and the other on right
                 name="ObjectSampler",
                 mujoco_objects=cubes,
                 x_range=[-0.08, 0.08],
@@ -372,16 +381,40 @@ class Lifteither(SingleArmEnv):
             @sensor(modality=modality)
             def cube_quat(obs_cache):
                 return convert_quat(np.array(self.sim.data.body_xquat[self.cube_body_id]), to="xyzw")
+            
+            @sensor(modality=modality)
+            def cube2_pos(obs_cache):
+                return np.array(self.sim.data.body_xpos[self.cube2_body_id])
 
             @sensor(modality=modality)
-            def gripper_to_cube_pos(obs_cache):
+            def cube2_quat(obs_cache):
+                return convert_quat(np.array(self.sim.data.body_xquat[self.cube2_body_id]), to="xyzw")
+
+            @sensor(modality=modality)
+            def gripper_to_cube(obs_cache):
                 return (
-                    obs_cache[f"{pf}eef_pos"] - obs_cache["cube_pos"]
-                    if f"{pf}eef_pos" in obs_cache and "cube_pos" in obs_cache
+                    obs_cache["cube_pos"] - obs_cache[f"{pf}eef_pos"]
+                    if "cube_pos" in obs_cache and f"{pf}eef_pos" in obs_cache
                     else np.zeros(3)
                 )
 
-            sensors = [cube_pos, cube_quat, gripper_to_cube_pos]
+            @sensor(modality=modality)
+            def gripper_to_cube2(obs_cache):
+                return (
+                    obs_cache["cube2_pos"] - obs_cache[f"{pf}eef_pos"]
+                    if "cube2_pos" in obs_cache and f"{pf}eef_pos" in obs_cache
+                    else np.zeros(3)
+                )
+
+            @sensor(modality=modality)
+            def cube_to_cube2(obs_cache):
+                return (
+                    obs_cache["cube2_pos"] - obs_cache["cube_pos"]
+                    if "cube_pos" in obs_cache and "cube2_pos" in obs_cache
+                    else np.zeros(3)
+                )
+
+            sensors = [cube_pos, cube_quat, cube2_pos, cube2_quat, gripper_to_cube, gripper_to_cube2, cube_to_cube2]
             names = [s.__name__ for s in sensors]
 
             # Create observables
@@ -424,7 +457,7 @@ class Lifteither(SingleArmEnv):
 
         # Color the gripper visualization site according to its distance to the cube
         if vis_settings["grippers"]:
-            self._visualize_gripper_to_target(gripper=self.robots[0].gripper, target=self.cube)
+            self._visualize_gripper_to_target(gripper=self.robots[0].gripper, target=self.cube2)
 
     def _check_success(self):
         """
