@@ -8,7 +8,7 @@ from robosuite.models.objects import BoxObject
 from robosuite.models.tasks import ManipulationTask
 from robosuite.utils.mjcf_utils import CustomMaterial
 from robosuite.utils.observables import Observable, sensor
-from robosuite.utils.placement_samplers import UniformRandomSampler, NormalDistSampler
+from robosuite.utils.placement_samplers import UniformRandomSampler, NormalDistSampler, UniformRandomSampler_2blocks
 from robosuite.utils.transform_utils import convert_quat
 
 
@@ -241,15 +241,25 @@ class Lifteither(SingleArmEnv):
         # use a shaping reward
         elif self.reward_shaping:
 
-            # reaching reward
+            # reaching reward for both the cubes 
+            # TODO: check if this is correct
             cube_pos = self.sim.data.body_xpos[self.cube_body_id]
             gripper_site_pos = self.sim.data.site_xpos[self.robots[0].eef_site_id]
             dist = np.linalg.norm(gripper_site_pos - cube_pos)
             reaching_reward = 1 - np.tanh(10.0 * dist)
             reward += reaching_reward
 
-            # grasping reward
+            cube2_pos = self.sim.data.body_xpos[self.cube2_body_id]
+            gripper_site_pos = self.sim.data.site_xpos[self.robots[0].eef_site_id]
+            dist = np.linalg.norm(gripper_site_pos - cube2_pos)
+            reaching_reward = 1 - np.tanh(10.0 * dist)
+            reward += reaching_reward
+
+            # grasping reward for both the cubes
             if self._check_grasp(gripper=self.robots[0].gripper, object_geoms=self.cube):
+                reward += 0.25
+
+            if self._check_grasp(gripper=self.robots[0].gripper, object_geoms=self.cube2):
                 reward += 0.25
 
         # Scale reward if requested
@@ -327,13 +337,13 @@ class Lifteither(SingleArmEnv):
             self.placement_initializer.reset()
             self.placement_initializer.add_objects(cubes)
         else:
-            self.placement_initializer = UniformRandomSampler(  # Change here for bi-modal, one block on the left and the other on right
+            self.placement_initializer = UniformRandomSampler_2blocks(  # Change here for bi-modal, one block on the left and the other on right
                 name="ObjectSampler",
                 mujoco_objects=cubes,
                 x_range=[-0.08, 0.08],
-                y_range=[-0.08, 0.08],
+                y_range=[-0.4, 0.4],
                 rotation=None,
-                ensure_object_boundary_in_range=False,
+                ensure_object_boundary_in_range=True,
                 ensure_valid_placement=True,
                 reference_pos= self.table_offset, #originally  np.array((0, 0.2, 0.8))
                 z_offset=0.01,
