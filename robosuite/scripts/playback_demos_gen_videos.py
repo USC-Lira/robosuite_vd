@@ -1,40 +1,23 @@
-"""
-A convenience script to playback random demonstrations from
-a set of demonstrations stored in a hdf5 file.
-
-Arguments:
-    --folder (str): Path to demonstrations
-    --use-actions (optional): If this flag is provided, the actions are played back
-        through the MuJoCo simulator, instead of loading the simulator states
-        one by one.
-    --visualize-gripper (optional): If set, will visualize the gripper site
-
-Example:
-    $ python playback_demonstrations_from_hdf5.py --folder ../models/assets/demonstrations/lift/
-"""
-
 import argparse
-import json
 import os
 import random
-
+import json
 import h5py
 import numpy as np
-
+import imageio
 import robosuite
+from robosuite import make
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--folder",
         type=str,
-        help="Path to your demonstration folder that contains the demo.hdf5 file, e.g.: "
-        "'path_to_assets_dir/demonstrations/YOUR_DEMONSTRATION'",
-    ),
-    parser.add_argument(
-        "--use-actions",
-        action="store_true",
+        help="Path to your demonstration folder that contains the demo.hdf5 file, e.g.: 'path_to_assets_dir/demonstrations/YOUR_DEMONSTRATION'",
     )
+    parser.add_argument("--use-actions", action="store_true")
+    parser.add_argument("--video_path", type=str, default="video.mp4", help="Path to save the video")
+    parser.add_argument("--skip_frame", type=int, default=1, help="Number of frames to skip before saving a new one")
     args = parser.parse_args()
 
     demo_path = args.folder
@@ -53,17 +36,20 @@ if __name__ == "__main__":
         control_freq=20,
     )
 
-    # list of all demonstrations episodes
     demos = list(f["data"].keys())
     print(len(demos))
 
+    
+    # Initialize video writer
+    # writer = imageio.get_writer(str(demos)+args.video_path, fps=20)
+
     while True:
         print("Playing back random episode... (press ESC to quit)")
-
-        # select an episode randomly
         ep = random.choice(demos)
 
-        # read the model xml, using the metadata stored in the attribute for this episode
+        video_file_name = ep + "_" + args.video_path
+        writer = imageio.get_writer(video_file_name, fps=20)
+
         model_xml = f["data/{}".format(ep)].attrs["model_file"]
 
         env.reset()
@@ -72,16 +58,13 @@ if __name__ == "__main__":
         env.sim.reset()
         env.viewer.set_camera(0)
 
-        # load the flattened mujoco states
         states = f["data/{}/states".format(ep)][()]
+        frame_count = 0
 
         if args.use_actions:
-
-            # load the initial state
             env.sim.set_state_from_flattened(states[0])
             env.sim.forward()
 
-            # load the actions and play them back open-loop
             actions = np.array(f["data/{}/actions".format(ep)][()])
             num_actions = actions.shape[0]
 
@@ -89,19 +72,30 @@ if __name__ == "__main__":
                 env.step(action)
                 env.render()
 
+                # Save frame
+                if frame_count % args.skip_frame == 0:
+                    frame = env.sim.render(camera_name="agentview", width=512, height=512)
+                    writer.append_data(frame)
+
+                frame_count += 1
+
                 if j < num_actions - 1:
-                    # ensure that the actions deterministically lead to the same recorded states
                     state_playback = env.sim.get_state().flatten()
                     if not np.all(np.equal(states[j + 1], state_playback)):
                         err = np.linalg.norm(states[j + 1] - state_playback)
                         print(f"[warning] playback diverged by {err:.2f} for ep {ep} at step {j}")
-
         else:
-
-            # force the sequence of internal mujoco states one by one
             for state in states:
                 env.sim.set_state_from_flattened(state)
                 env.sim.forward()
                 env.render()
 
+                # Save frame
+                if frame_count % args.skip_frame == 0:
+                    frame = env.sim.render(camera_name="agentview", width=512, height=512)
+                    writer.append_data(frame)
+
+                frame_count += 1
+
+    writer.close()
     f.close()

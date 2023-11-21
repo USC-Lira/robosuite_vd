@@ -461,7 +461,13 @@ class NormalDistSampler(ObjectPositionSampler):
         # Standardize inputs
         placed_objects = {} if fixtures is None else copy(fixtures)
         if reference is None:
-            base_offset = self.reference_pos
+            # Randomly choose between 0 and 1
+            choice_index = np.random.randint(2)
+            # Select the offset based on the random choice
+            offsets = [np.array((0, 0.2, 0.0)), np.array((0, -0.2, 0.0))]
+            offset_choice = offsets[choice_index]
+            base_offset = self.reference_pos + offset_choice
+
         elif type(reference) is str:
             assert (
                 reference in placed_objects

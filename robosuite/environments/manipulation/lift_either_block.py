@@ -12,7 +12,7 @@ from robosuite.utils.placement_samplers import UniformRandomSampler, NormalDistS
 from robosuite.utils.transform_utils import convert_quat
 
 
-class Lift(SingleArmEnv):
+class Lifteither(SingleArmEnv):
     """
     This class corresponds to the lifting task for a single robot arm.
 
@@ -257,6 +257,7 @@ class Lift(SingleArmEnv):
             reward *= self.reward_scale / 2.25
 
         return reward
+    
 
     def _load_model(self):
         """
@@ -302,16 +303,26 @@ class Lift(SingleArmEnv):
             material=redwood,
         )
 
+        self.cube2 = BoxObject(
+            name="cube2",
+            size_min=[0.020, 0.020, 0.020],  # [0.015, 0.015, 0.015],
+            size_max=[0.022, 0.022, 0.022],  # [0.018, 0.018, 0.018])
+            rgba=[1, 0, 0, 1],
+            material=redwood,
+        )
+
+        cubes = [self.cube, self.cube2]
+
         # Create placement initializer
         if self.placement_initializer is not None:
             self.placement_initializer.reset()
-            self.placement_initializer.add_objects(self.cube)
+            self.placement_initializer.add_objects(cubes)
         else:
-            self.placement_initializer = NormalDistSampler(
+            self.placement_initializer = UniformRandomSampler(
                 name="ObjectSampler",
-                mujoco_objects=self.cube,
-                x_range=[-0.03, 0.03],
-                y_range=[-0.03, 0.03],
+                mujoco_objects=cubes,
+                x_range=[-0.08, 0.08],
+                y_range=[-0.08, 0.08],
                 rotation=None,
                 ensure_object_boundary_in_range=False,
                 ensure_valid_placement=True,
@@ -323,7 +334,7 @@ class Lift(SingleArmEnv):
         self.model = ManipulationTask(
             mujoco_arena=mujoco_arena,
             mujoco_robots=[robot.robot_model for robot in self.robots],
-            mujoco_objects=self.cube,
+            mujoco_objects=cubes,
         )
 
     def _setup_references(self):
@@ -336,6 +347,7 @@ class Lift(SingleArmEnv):
 
         # Additional object references from this env
         self.cube_body_id = self.sim.model.body_name2id(self.cube.root_body)
+        self.cube2_body_id = self.sim.model.body_name2id(self.cube2.root_body)
 
     def _setup_observables(self):
         """
@@ -421,9 +433,16 @@ class Lift(SingleArmEnv):
         Returns:
             bool: True if cube has been lifted
         """
-        cube_height = self.sim.data.body_xpos[self.cube_body_id][2]
+        # cube_height = self.sim.data.body_xpos[self.cube_body_id][2]
+        # table_height = self.model.mujoco_arena.table_offset[2]
+
+        # # cube is higher than the table top above a margin
+        # return cube_height > table_height + 0.04
+
+        cube1_height = self.sim.data.body_xpos[self.cube_body_id][2]
+        cube2_height = self.sim.data.body_xpos[self.cube2_body_id][2]
         table_height = self.model.mujoco_arena.table_offset[2]
 
-        # cube is higher than the table top above a margin
-        return cube_height > table_height + 0.04
+        # Check if either cube is higher than the table top above a margin
+        return (cube1_height > table_height + 0.04) or (cube2_height > table_height + 0.04)
 
