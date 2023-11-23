@@ -765,9 +765,9 @@ class UniformRandomSampler_2blocks(ObjectPositionSampler):
 
         # Divide the Y range into two halves and sample based on the object index
         if obj_index == 0:
-            y_max = y_min + (y_max - y_min) / 2 #First block max is set to left half of the table
+            y_max = (y_min + (y_max - y_min) / 2) - 0.1 #First block max is set to left half of the table
         else:
-            y_min = y_min + (y_max - y_min) / 2 #Second block min is set to the center/end of left half of table
+            y_min = (y_min + (y_max - y_min) / 2) + 0.1 #Second block min is set to the center/end of left half of table
 
         return np.random.uniform(high=y_max, low=y_min)
 
