@@ -60,6 +60,8 @@ def collect_human_trajectory(env, device, arm, env_configuration):
             break
 
         # Run environment step
+        action = np.clip(action, -1, 1) # Clipping the action to be between -1 and 1
+        # print(action)
         env.step(action)
         env.render()
 

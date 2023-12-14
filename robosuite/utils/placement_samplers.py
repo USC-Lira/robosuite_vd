@@ -745,7 +745,9 @@ class UniformRandomSampler_2blocks(ObjectPositionSampler):
         if self.ensure_object_boundary_in_range:
             minimum += object_horizontal_radius
             maximum -= object_horizontal_radius
-        return np.random.uniform(high=maximum, low=minimum)
+
+        # return np.random.uniform(high=maximum, low=minimum)
+        return np.random.uniform(high=0, low=0) # To avoid any the x dof for now, make the model overfit on this first
 
     def _sample_y(self, object_horizontal_radius, obj_index):
         """
@@ -759,15 +761,17 @@ class UniformRandomSampler_2blocks(ObjectPositionSampler):
             float: sampled y position.
         """
         y_min, y_max = self.y_range
-        if self.ensure_object_boundary_in_range:
-            y_min += object_horizontal_radius
-            y_max -= object_horizontal_radius
+        # if self.ensure_object_boundary_in_range:
+        #     y_min += object_horizontal_radius
+        #     y_max -= object_horizontal_radius
 
         # Divide the Y range into two halves and sample based on the object index
         if obj_index == 0:
             y_max = (y_min + (y_max - y_min) / 2) - 0.1 #First block max is set to left half of the table
+            y_min = y_max - 0.05
         else:
             y_min = (y_min + (y_max - y_min) / 2) + 0.1 #Second block min is set to the center/end of left half of table
+            y_max = y_min + 0.05
 
         return np.random.uniform(high=y_max, low=y_min)
 
@@ -787,6 +791,8 @@ class UniformRandomSampler_2blocks(ObjectPositionSampler):
             rot_angle = np.random.uniform(high=max(self.rotation), low=min(self.rotation))
         else:
             rot_angle = self.rotation
+
+        rot_angle = 0 # Minimizing the problem
 
         # Return angle based on axis requested
         if self.rotation_axis == "x":

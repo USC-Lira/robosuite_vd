@@ -326,7 +326,7 @@ class Lifteither(SingleArmEnv):
             name="cube2",
             size_min=[0.020, 0.020, 0.020],  # [0.015, 0.015, 0.015],
             size_max=[0.022, 0.022, 0.022],  # [0.018, 0.018, 0.018])
-            rgba=[1, 0, 0, 1],
+            rgba=[0, 1, 0, 1],
             material=greenwood,
         )
 
@@ -337,7 +337,7 @@ class Lifteither(SingleArmEnv):
             self.placement_initializer.reset()
             self.placement_initializer.add_objects(cubes)
         else:
-            self.placement_initializer = UniformRandomSampler_2blocks(  # Change here for bi-modal, one block on the left and the other on right
+            self.placement_initializer = UniformRandomSampler_2blocks(  # Set back to uniform sampler
                 name="ObjectSampler",
                 mujoco_objects=cubes,
                 x_range=[-0.08, 0.08],
