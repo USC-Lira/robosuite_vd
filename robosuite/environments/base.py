@@ -443,11 +443,15 @@ class MujocoEnv(metaclass=EnvMeta):
         """
         raise NotImplementedError
 
-    def render(self):
+    def render(self, gaze=False): #TODO: dhanush, check this lol
         """
         Renders to an on-screen window.
         """
-        self.viewer.render()
+        if not gaze:
+            self.viewer.render()
+        else:
+            image = self.viewer.render()
+            return image
 
     def get_pixel_obs(self):
         """

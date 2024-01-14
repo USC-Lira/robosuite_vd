@@ -8,8 +8,8 @@ import numpy as np
 class OpenCVRenderer:
     def __init__(self, sim):
         # TODO: update this appropriately - need to get screen dimensions
-        self.width = 1280
-        self.height = 800
+        self.width = 3440
+        self.height = 1440
 
         self.sim = sim
         self.camera_name = self.sim.model.camera_id2name(0)
@@ -24,6 +24,24 @@ class OpenCVRenderer:
         """
         self.camera_name = self.sim.model.camera_id2name(camera_id)
 
+    # def render(self): #TODO: implement the dual rendering option
+    #     # get frame with offscreen renderer (assumes that the renderer already exists)
+    #     # im = self.sim.render(camera_name=self.camera_name, height=self.height, width=self.width)[..., ::-1]
+    #     image = self.sim.render(camera_name=self.camera_name, height=self.height, width=self.width)
+    #     im = image[..., ::-1]
+    #     # write frame to window
+    #     im = np.flip(im, axis=0)
+    #     cv2.imshow("offscreen render", im)
+    #     key = cv2.waitKey(1)
+    #     if self.keypress_callback:
+    #         self.keypress_callback(key)
+
+    #     # import pdb; pdb.set_trace()
+
+    #     assert image is not None, "Rendered image is None"
+    #     print("I am giving image from OpenCV rendre")
+    #     return image
+        
     def render(self):
         # get frame with offscreen renderer (assumes that the renderer already exists)
         im = self.sim.render(camera_name=self.camera_name, height=self.height, width=self.width)[..., ::-1]

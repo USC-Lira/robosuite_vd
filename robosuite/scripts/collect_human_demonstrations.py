@@ -60,8 +60,6 @@ def collect_human_trajectory(env, device, arm, env_configuration):
             break
 
         # Run environment step
-        action = np.clip(action, -1, 1) # Clipping the action to be between -1 and 1
-        # print(action)
         env.step(action)
         env.render()
 
@@ -181,7 +179,7 @@ if __name__ == "__main__":
         type=str,
         default=os.path.join(suite.models.assets_root, "demonstrations"),
     )
-    parser.add_argument("--environment", type=str, default="Lifteither")
+    parser.add_argument("--environment", type=str, default="Lift")
     parser.add_argument("--robots", nargs="+", type=str, default="Panda", help="Which robot(s) to use in the env")
     parser.add_argument(
         "--config", type=str, default="single-arm-opposed", help="Specified environment configuration if necessary"
