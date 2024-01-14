@@ -22,7 +22,23 @@ from robosuite.utils.input_utils import input2action
 from robosuite.wrappers import DataCollectionWrapper, VisualizationWrapper
 from robosuite.wrappers.data_collection_wrapper import DataCollectionWrapper_gaze
 from robosuite.utils.oculus_controller import VRPolicy
-import robosuite.utils.transform_utils as T
+
+from robosuite.gaze_stuff.gaze_socket_client import SimpleClient
+from robosuite.gaze_stuff.gaze_data_utils import gaze_data_util as GU
+
+# TODO: fix this Integration, dhanush
+
+#----Gaze Sensor Integration ----#
+gaze_client = SimpleClient('192.168.1.93', 5478, 102)
+gaze_client.connect_to_server()
+
+gaze_data_dict = GU.gaze_pixels(gaze_client.get_latest_message()) # Pollling Code
+
+
+# --Format of Data -- #
+# (int(gaze_data_dict['pixel_x'])
+# int(gaze_data_dict['pixel_y']))
+
 
 
 def collect_human_trajectory(policy, env, device, arm, env_configuration):
@@ -253,7 +269,7 @@ if __name__ == "__main__":
 
     # wrap the environment with data collection wrapper
     tmp_directory = "/tmp/{}".format(str(time.time()).replace(".", "_"))
-    env = DataCollectionWrapper(env, tmp_directory)
+    env = DataCollectionWrapper_gaze(env, tmp_directory) # TODO: check if this is enough
 
     # initialize device
     if args.device == "keyboard":
