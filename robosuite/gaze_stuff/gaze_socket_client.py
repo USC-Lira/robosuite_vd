@@ -55,7 +55,7 @@ class SimpleClient:
 
 # Usage
 if __name__ == "__main__":
-    client = SimpleClient('192.168.1.93', 5478, 102) # IPv4 Address of the windows machine, Port number to match, Length of the expected message
+    client = SimpleClient('192.168.1.93', 5478, 96) # IPv4 Address of the windows machine, Port number to match, Length of the expected message
     client.connect_to_server()
     import time
 

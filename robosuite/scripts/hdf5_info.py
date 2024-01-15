@@ -1,19 +1,23 @@
 import h5py
+import pdb
 
 def read_actions_states(file_path):
     with h5py.File(file_path, 'r') as file:
         data_group = file['data']
+        pdb.set_trace()
+        
 
         for demo_name, demo_group in data_group.items():
-            print(f"Reading demonstration: {demo_name}")
 
+            print(f"Reading demonstration: {demo_name}")
+            # pdb.set_trace()
            
 
             # Access and print the 'states' dataset
             if 'states' in demo_group:
                 states = demo_group['states'][:]
                 print(f"    States: {states.shape}")
-                import pdb; pdb.set_trace()
+                # pdb.set_trace()
                 # Uncomment the next line to print the states data
                 # print(states)
 
@@ -27,6 +31,7 @@ def read_actions_states(file_path):
 
 
 # read_actions_states('/home/dpenmets/LIRA_work/robosuite_vd/robosuite/models/assets/demonstrations/1705188586_7761292/low_dim.hdf5')
+read_actions_states('/home/dpenmets/LIRA_work/robosuite_vd/robosuite/models/assets/demonstrations/1705269065_8573515/demo.hdf5')
 
 #--------------------------------------
 
@@ -63,8 +68,13 @@ def read_and_cluster(file_path):
 
     return cluster_1, cluster_2
 
-# Example usage
-file_path = '/home/dpenmets/LIRA_work/robosuite_vd/robosuite/models/assets/demonstrations/1705188586_7761292/low_dim.hdf5'
-cluster_1, cluster_2 = read_and_cluster(file_path)
-print("Cluster 1 Demonstrations:", len(cluster_1))
-print("Cluster 2 Demonstrations:", len(cluster_2))
+# # Example usage
+# file_path = '/home/dpenmets/LIRA_work/robosuite_vd/robosuite/models/assets/demonstrations/1705269065_8573515/demo.hdf5'
+# cluster_1, cluster_2 = read_and_cluster(file_path)
+# print("Cluster 1 Demonstrations:", cluster_1, "\n")
+# print("Cluster 2 Demonstrations:", cluster_2)
+
+# import pprint
+
+# message = f"Group 1 demos count: {len(cluster_1)}  Group 2 demos count: {len(cluster_2)}"
+# pprint.pprint(message)

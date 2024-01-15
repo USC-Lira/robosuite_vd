@@ -70,7 +70,7 @@ if __name__ == "__main__":
         xml = env.edit_model_xml(model_xml)
         env.reset_from_xml_string(xml)
         env.sim.reset()
-        env.viewer.set_camera(0)
+        env.viewer.set_camera(2)
 
         # load the flattened mujoco states
         states = f["data/{}/states".format(ep)][()]
@@ -83,11 +83,14 @@ if __name__ == "__main__":
 
             # load the actions and play them back open-loop
             actions = np.array(f["data/{}/actions".format(ep)][()])
+            gazes = np.array(f["data/{}/gazes".format(ep)][()])
             num_actions = actions.shape[0]
 
-            for j, action in enumerate(actions):
+            # for j, action in enumerate(actions):
+            for j, (action, gaze) in enumerate(zip(actions, gazes)):
                 env.step(action)
-                env.render()
+                env.render(gaze=True, gaze_data=gaze)
+                # env.render()
 
                 if j < num_actions - 1:
                     # ensure that the actions deterministically lead to the same recorded states

@@ -302,7 +302,7 @@ class DataCollectionWrapper_gaze(Wrapper):
         )
         self.states = []
         self.action_infos = []
-        self.gaze_infos = [] #TODO: dhanuhs check
+        self.gaze_infos = [] #TODO: dhanush check
         self.successful = False
 
     def reset(self):
@@ -345,10 +345,13 @@ class DataCollectionWrapper_gaze(Wrapper):
             self.states.append(state)
 
             info = {}
+            info_gaze = {}
+
             info["actions"] = np.array(action)
-            info['gazes'] = np.array(gaze) #TODO: check this | dhanush
+            info_gaze["gazes"] = np.array(gaze) #TODO: check this | dhanush
+            
             self.action_infos.append(info)
-            self.gaze_infos.append(gaze)
+            self.gaze_infos.append(info_gaze)
 
         # check if the demonstration is successful
         if self.env._check_success():

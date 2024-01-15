@@ -53,6 +53,27 @@ class OpenCVRenderer:
         if self.keypress_callback:
             self.keypress_callback(key)
 
+    def render_gaze(self, gaze_data):
+        # get frame with offscreen renderer (assumes that the renderer already exists)
+        im = self.sim.render(camera_name=self.camera_name, height=self.height, width=self.width)[..., ::-1]
+
+        # write frame to window
+        im = np.flip(im, axis=0)
+
+        #Before displaying the image we draw the marker using the gaze information
+        gaze_im = cv2.drawMarker(np.uint8(im.copy()), (int(gaze_data[0] * self.width), int(gaze_data[1] * self.height)), 
+                                 color=(0, 0, 255), markerType=cv2.MARKER_CROSS, markerSize=100, thickness=2)
+
+
+        # import pdb; pdb.set_trace()
+
+        cv2.imshow("offscreen render", gaze_im)
+        key = cv2.waitKey(1)
+        if self.keypress_callback:
+            self.keypress_callback(key)
+
+
+
     def add_keypress_callback(self, keypress_callback):
         self.keypress_callback = keypress_callback
 

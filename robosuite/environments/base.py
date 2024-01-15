@@ -443,15 +443,24 @@ class MujocoEnv(metaclass=EnvMeta):
         """
         raise NotImplementedError
 
-    def render(self, gaze=False): #TODO: dhanush, check this lol
+    def render(self, gaze=False, gaze_data=None): #TODO: dhanush, check this lol
         """
         Renders to an on-screen window.
         """
         if not gaze:
             self.viewer.render()
+            
         else:
-            image = self.viewer.render()
-            return image
+
+            # Code meant for when the frame is returned itself
+            # image = self.viewer.render()
+            # return image
+
+            # Code, meant where we pass the gaze data to the OpenCV render method
+            self.viewer.render_gaze(gaze_data=gaze_data) # Gaze data to be passed (FPOGx, FPOGy)
+
+
+
 
     def get_pixel_obs(self):
         """
