@@ -97,11 +97,11 @@ def collect_human_trajectory(policy, env, device, arm, env_configuration):
         # print(gaze_data_raw)
 
         # --Format of Data -- #
-        # (int(gaze_data_dict_adj['pixel_x'])
-        # int(gaze_data_dict_adj['pixel_y']))
+        # gaze_data_dict_adj['pixel_x']
+        # gaze_data_dict_adj['pixel_y']
         # gaze_data_raw['FPOGX']
         # gaze_data_raw['FPOGY']
-        #------------------#
+        #---------------------#
 
         # Gaze data (FPOGX, FPOGY), in the same format as action
         gaze_data_np = np.array([gaze_data_raw['FPOGX'], gaze_data_raw['FPOGY']], dtype=np.float64)
