@@ -443,7 +443,7 @@ class MujocoEnv(metaclass=EnvMeta):
         """
         raise NotImplementedError
 
-    def render(self, gaze=False, gaze_data=None): #TODO: dhanush, check this lol
+    def render(self, gaze=False, gaze_data=None): #TODO: dhanush, check this function #NOTE(dhanush): Used to render the with and without gaze
         """
         Renders to an on-screen window.
         """
