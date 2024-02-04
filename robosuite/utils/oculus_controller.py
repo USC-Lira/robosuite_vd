@@ -7,7 +7,7 @@ import numpy as np
 
 import sys
 sys.path.append('/home/dpenmets/LIRA_work/oculus_reader')
-from oculus_reader.reader import OculusReader
+# from oculus_reader.reader import OculusReader
 
 from robosuite.utils.subprocess_utils_VR import run_threaded_command
 from robosuite.utils.transformation_VR import add_angles, euler_to_quat, quat_diff, quat_to_euler, rmat_to_quat

@@ -12,7 +12,10 @@ from robosuite.environments.manipulation.two_arm_lift import TwoArmLift
 from robosuite.environments.manipulation.two_arm_peg_in_hole import TwoArmPegInHole
 from robosuite.environments.manipulation.two_arm_handover import TwoArmHandover
 from robosuite.environments.manipulation.two_arm_transport import TwoArmTransport
-from robosuite.environments.manipulation.lift_either_block import Lifteither
+from robosuite.environments.manipulation.lift_either_block import Lifteither #NOTE(dhanush) : added for Lift either task
+from robosuite.environments.manipulation.stack_either import Stack_Either #NOTE(dhanush) : added for stack either task
+from robosuite.environments.manipulation.block_pair import Block_Pair #NOTE(dhanush) : added for Block Pair
+
 
 from robosuite.environments import ALL_ENVIRONMENTS
 from robosuite.controllers import ALL_CONTROLLERS, load_controller_config
