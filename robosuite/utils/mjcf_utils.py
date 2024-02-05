@@ -492,6 +492,46 @@ def get_size(size, size_max, size_min, default_max, default_min):
     return np.array(size)
 
 
+def get_size_obstacle(size, size_max, size_min, default_max, default_min): #NOTE(dhanush) : We randomly return either the max or the min size
+    """
+    Helper method for providing a size, or a range to randomize from
+
+    Args:
+        size (n-array): Array of numbers that explicitly define the size
+        size_max (n-array): Array of numbers that define the custom max size
+        size_min (n-array): Array of numbers that define the custom min size
+        default_max (n-array): Array of numbers that define the default max size
+        default_min (n-array): Array of numbers that define the default min size
+
+    Returns:
+        np.array: size generated
+
+    Raises:
+        ValueError: [Inconsistent array sizes]
+    """
+    if len(default_max) != len(default_min):
+        raise ValueError(
+            "default_max = {} and default_min = {}".format(str(default_max), str(default_min))
+            + " have different lengths"
+        )
+    
+    if size is not None:
+        if (size_max is not None) or (size_min is not None):
+            raise ValueError("size = {} overrides size_max = {}, size_min = {}".format(size, size_max, size_min))
+    else:
+        # Randomly choose between size_max and size_min
+        if np.random.choice([True, False]):
+            size = size_max
+        else:
+            size = size_min
+    
+    return np.array(size)
+
+
+
+
+
+
 def add_to_dict(dic, fill_in_defaults=True, default_value=None, **kwargs):
     """
     Helper function to add key-values to dictionary @dic where each entry is its own array (list).
