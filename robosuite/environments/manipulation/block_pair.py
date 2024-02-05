@@ -4,11 +4,11 @@ import numpy as np
 
 from robosuite.environments.manipulation.single_arm_env import SingleArmEnv
 from robosuite.models.arenas import TableArena
-from robosuite.models.objects import BoxObject
+from robosuite.models.objects import BoxObject, ObstacleObject
 from robosuite.models.tasks import ManipulationTask
 from robosuite.utils.mjcf_utils import CustomMaterial
 from robosuite.utils.observables import Observable, sensor
-from robosuite.utils.placement_samplers import UniformRandomSampler
+from robosuite.utils.placement_samplers import UniformRandomSampler, Block_Obstacle_Sampler
 from robosuite.utils.transform_utils import convert_quat
 
 
@@ -140,7 +140,7 @@ class Block_Pair(SingleArmEnv):
         controller_configs=None,
         gripper_types="default",
         initialization_noise="default",
-        table_full_size=(0.8, 0.8, 0.05),
+        table_full_size=(0.9, 0.9, 0.05),
         table_friction=(1.0, 5e-3, 1e-4),
         use_camera_obs=True,
         use_object_obs=True,
@@ -251,7 +251,7 @@ class Block_Pair(SingleArmEnv):
 
         return reward
 
-    def staged_rewards(self):
+    def staged_rewards(self): #TODO(dhanush) : check if the modified reward is fine
         """
         Helper function to calculate staged rewards based on current physical states.
 
@@ -266,30 +266,52 @@ class Block_Pair(SingleArmEnv):
         cubeA_pos = self.sim.data.body_xpos[self.cubeA_body_id]
         cubeB_pos = self.sim.data.body_xpos[self.cubeB_body_id]
         gripper_site_pos = self.sim.data.site_xpos[self.robots[0].eef_site_id]
-        dist = np.linalg.norm(gripper_site_pos - cubeA_pos)
-        r_reach = (1 - np.tanh(10.0 * dist)) * 0.25
+        dist_cube_A = np.linalg.norm(gripper_site_pos - cubeA_pos)
+        dist_cube_B = np.linalg.norm(gripper_site_pos - cubeB_pos) #NOTE(dhanush) : modified reward term
+        r_reach_cube_A = (1 - np.tanh(10.0 * dist_cube_A)) * 0.25
+        r_reach_cube_B = (1 - np.tanh(10.0 * dist_cube_B)) * 0.25  #NOTE(dhanush) : modified reward term
+        r_reach = max(r_reach_cube_A, r_reach_cube_B) #NOTE(dhanush) : we take the max of either reach award, to avoid unwanted termination
 
         # grasping reward
         grasping_cubeA = self._check_grasp(gripper=self.robots[0].gripper, object_geoms=self.cubeA)
-        if grasping_cubeA:
-            r_reach += 0.25
+        grasping_cubeB = self._check_grasp(gripper=self.robots[0].gripper, object_geoms=self.cubeB) #NOTE(dhanush) : grasping reward added for Cube B 
+        if grasping_cubeA or grasping_cubeB: #NOTE(dhanush) : checking if we are reaching for cube B
+            r_reach += 0.25 
 
         # lifting is successful when the cube is above the table top by a margin
         cubeA_height = cubeA_pos[2]
+        cubeB_height = cubeB_pos[2] #NOTE(dhanush) : Cube B height  
         table_height = self.table_offset[2]
         cubeA_lifted = cubeA_height > table_height + 0.04
-        r_lift = 1.0 if cubeA_lifted else 0.0
+        cubeB_lifted = cubeB_height > table_height + 0.04 #NOTE(dhanush) : Checking if Cube B is lifted
+        r_lift = 1.0 if (cubeA_lifted or cubeB_lifted) else 0.0 #NOTE(dhanush) : Lift reward is now also dependent on Cube B
 
         # Aligning is successful when cubeA is right above cubeB
         if cubeA_lifted:
             horiz_dist = np.linalg.norm(np.array(cubeA_pos[:2]) - np.array(cubeB_pos[:2]))
             r_lift += 0.5 * (1 - np.tanh(horiz_dist))
 
+        # Aligning is successful when cubeB is right above cubeA #NOTE(dhanush) : This is added 
+        if cubeB_lifted:
+            horiz_dist = np.linalg.norm(np.array(cubeB_pos[:2]) - np.array(cubeA_pos[:2]))
+            r_lift += 0.5 * (1 - np.tanh(horiz_dist))
+
         # stacking is successful when the block is lifted and the gripper is not holding the object
-        r_stack = 0
-        cubeA_touching_cubeB = self.check_contact(self.cubeA, self.cubeB)
+        r_stack = 0 #HACk(dhanush) : we just use the same variable
+        cubeA_touching_cubeB = self.check_contact(self.cubeA, self.cubeB) #NOTE(dhanush) : Either way should be the same, so this is fine
         if not grasping_cubeA and r_lift > 0 and cubeA_touching_cubeB:
             r_stack = 2.0
+        if not grasping_cubeB and r_lift > 0 and cubeA_touching_cubeB: #NOTE(dhanush) : checking the stack condition the other way
+            r_stack = 2.0
+
+        # Transfer is successful when either block has been placed on the other side
+        # r_transfer = 0
+        # if not cubeA_lifted and (cubeA_pos[1] > 0) : 
+            # r_transfer = 2.0
+        # if not cubeB_lifted and (cubeB_pos[1] < 0) : 
+            # r_transfer = 2.0
+        
+        # r_stack = r_transfer #HACK(dhanush) : just transferring the nu
 
         return r_reach, r_lift, r_stack
 
@@ -336,9 +358,17 @@ class Block_Pair(SingleArmEnv):
             tex_attrib=tex_attrib,
             mat_attrib=mat_attrib,
         )
+        blackwood = CustomMaterial(
+            texture="WoodDark",
+            tex_name="blackwood",
+            mat_name="blackwood_mat",
+            tex_attrib=tex_attrib,
+            mat_attrib=mat_attrib,
+        )
+
         self.cubeA = BoxObject(
             name="cubeA",
-            size_min=[0.025, 0.025, 0.025],
+            size_min=[0.025, 0.025, 0.025], #NOTE(dhanush) : Made both the green and red cube of equal size
             size_max=[0.025, 0.025, 0.025],
             rgba=[1, 0, 0, 1],
             material=redwood,
@@ -350,20 +380,30 @@ class Block_Pair(SingleArmEnv):
             rgba=[0, 1, 0, 1],
             material=greenwood,
         )
-        cubes = [self.cubeA, self.cubeB]
+        #NOTE(dhanush) : positive X is towards user, positive Y is towards right direction of render screen
+        self.obstacle = ObstacleObject( #NOTE(dhanush) : added obstacle as a Box object
+            name="obstacle",
+            size_min=[0.05, 0.05, 0.075], #NOTE(dhanush) : Either the max or the min will be used as the size
+            size_max=[0.075, 0.075, 0.075], #NOTE (dhanush) : The Y Dimension is set to the length of the table, X(thickness) is relatively small, Z is going to be eiher {0.075} or {0.05}
+            rgba=[0, 0, 0, 1], #NOTE(dhanush) : Setting color to black
+            material=blackwood,
+            density=1000000.0  #HACK(dhanush) :  we just bumped the denistiy so high, its basically fixed
+        )
+
+        cubes = [self.cubeA, self.cubeB, self.obstacle] #NOTE(dhanush) :  adding obstacle to the list of cubes
         # Create placement initializer
         if self.placement_initializer is not None:
             self.placement_initializer.reset()
             self.placement_initializer.add_objects(cubes)
         else:
-            self.placement_initializer = UniformRandomSampler(
+            self.placement_initializer = Block_Obstacle_Sampler( 
                 name="ObjectSampler",
                 mujoco_objects=cubes,
                 x_range=[-0.08, 0.08],
                 y_range=[-0.08, 0.08],
                 rotation=None,
                 ensure_object_boundary_in_range=False,
-                ensure_valid_placement=True,
+                ensure_valid_placement=True, #TODO(dhanush) : check if this breaks anything
                 reference_pos=self.table_offset,
                 z_offset=0.01,
             )
@@ -386,6 +426,7 @@ class Block_Pair(SingleArmEnv):
         # Additional object references from this env
         self.cubeA_body_id = self.sim.model.body_name2id(self.cubeA.root_body)
         self.cubeB_body_id = self.sim.model.body_name2id(self.cubeB.root_body)
+        self.obstacle_body_id = self.sim.model.body_name2id(self.obstacle.root_body) #NOTE(dhanush) : Added body ID of obstacle
 
     def _reset_internal(self):
         """
@@ -403,7 +444,7 @@ class Block_Pair(SingleArmEnv):
             for obj_pos, obj_quat, obj in object_placements.values():
                 self.sim.data.set_joint_qpos(obj.joints[0], np.concatenate([np.array(obj_pos), np.array(obj_quat)]))
 
-    def _setup_observables(self):
+    def _setup_observables(self): #TODO(dhanush) : Check if we need to add obstacle to the observable 
         """
         Sets up observables to be used for this environment. Creates object-based observables if enabled
 
