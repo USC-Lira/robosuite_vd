@@ -106,9 +106,9 @@ def collect_human_trajectory(policy, env, device, arm, env_configuration):
         # Gaze data (FPOGX, FPOGY), in the same format as action
         gaze_data_np = np.array([gaze_data_raw['FPOGX'], gaze_data_raw['FPOGY']], dtype=np.float64)
         
-        # env.step(action) # corresponds to the vanilla data collection wrapper
-        # pdb.set_trace()
-        env.step(action, gaze_data_np) # corresponds to the data collection wrapper with gaze
+        # env.step(action) # NOTE(dhanush) : THIS WAS MEANT FOR THE ORIGINAL WRAPPER
+        env.step(action, gaze_data_np) # NOTE(dhanush) : THIS WAS MEANT FOR THE MODIFIED WRAPPER
+
         env.render()
 
         # Also break if we complete the task
@@ -176,8 +176,6 @@ def gather_demonstrations_as_hdf5(directory, out_dir, env_info): #TODO: verify m
         for state_file in sorted(glob(state_paths)):
             dic = np.load(state_file, allow_pickle=True)
             env_name = str(dic["env"])
-
-            # pdb.set_trace()
 
             states.extend(dic["states"])
             for ai in dic["action_infos"]:
@@ -264,7 +262,6 @@ if __name__ == "__main__":
     gaze_client.connect_to_server()
     gaze_util_obj = gaze_data_util(3440, 1440)
 
-
     # --Format of Data -- #
     # (int(gaze_data_dict['pixel_x'])
     # int(gaze_data_dict['pixel_y']))
@@ -303,7 +300,7 @@ if __name__ == "__main__":
 
     # wrap the environment with data collection wrapper
     tmp_directory = "/tmp/{}".format(str(time.time()).replace(".", "_"))
-    env = DataCollectionWrapper_gaze(env, tmp_directory) # TODO: check if this is enough
+    env = DataCollectionWrapper_gaze(env, tmp_directory) # NOTE(dhanush) : USING A MODIFIED WRAPPER
 
     # initialize device
     if args.device == "keyboard":
@@ -331,11 +328,11 @@ if __name__ == "__main__":
         rmat_reorder=[3, 1, 2,4]
     )
 
-    # collect demonstrations
+    # COLLECT DEMONSTRATIONS
     while True:
         collect_human_trajectory(policy, env, device, args.arm, args.config)
         gather_demonstrations_as_hdf5(tmp_directory, new_dir, env_info)
 
     
-    # Terminating Connection to gaze data
-    # gaze_client.disconnect()
+    # TERMINATING CONNECTION TO GAZE SOCKET
+    gaze_client.disconnect()
