@@ -140,7 +140,7 @@ class Block_Pair(SingleArmEnv):
         controller_configs=None,
         gripper_types="default",
         initialization_noise="default",
-        table_full_size=(0.9, 0.9, 0.05),
+        table_full_size=(0.8, 0.8, 0.05),
         table_friction=(1.0, 5e-3, 1e-4),
         use_camera_obs=True,
         use_object_obs=True,
@@ -359,7 +359,7 @@ class Block_Pair(SingleArmEnv):
             mat_attrib=mat_attrib,
         )
         blackwood = CustomMaterial(
-            texture="WoodDark",
+            texture="Metal",
             tex_name="blackwood",
             mat_name="blackwood_mat",
             tex_attrib=tex_attrib,
@@ -381,16 +381,27 @@ class Block_Pair(SingleArmEnv):
             material=greenwood,
         )
         #NOTE(dhanush) : positive X is towards user, positive Y is towards right direction of render screen
-        self.obstacle = ObstacleObject( #NOTE(dhanush) : added obstacle as a Box object
-            name="obstacle",
-            size_min=[0.05, 0.05, 0.075], #NOTE(dhanush) : Either the max or the min will be used as the size
-            size_max=[0.075, 0.075, 0.075], #NOTE (dhanush) : The Y Dimension is set to the length of the table, X(thickness) is relatively small, Z is going to be eiher {0.075} or {0.05}
+        self.obstacleA = ObstacleObject( #NOTE(dhanush) : added obstacle as a Box object
+            name="obstacleA",
+            size_min=[0.025, 0.025, 0.075], #NOTE(dhanush) : Either the max or the min will be used as the size
+            size_max=[0.025, 0.025, 0.075], #NOTE (dhanush) : The Y Dimension is set to the length of the table, X(thickness) is relatively small, Z is going to be eiher {0.075} or {0.05}
             rgba=[0, 0, 0, 1], #NOTE(dhanush) : Setting color to black
             material=blackwood,
             density=1000000.0  #HACK(dhanush) :  we just bumped the denistiy so high, its basically fixed
         )
 
-        cubes = [self.cubeA, self.cubeB, self.obstacle] #NOTE(dhanush) :  adding obstacle to the list of cubes
+        #NOTE(dhanush) : positive X is towards user, positive Y is towards right direction of render screen
+        self.obstacleB = ObstacleObject( #NOTE(dhanush) : added obstacle as a Box object
+            name="obstacleB",
+            size_min=[0.025, 0.025, 0.075], #NOTE(dhanush) : Either the max or the min will be used as the size
+            size_max=[0.025, 0.025, 0.075], #NOTE (dhanush) : The Y Dimension is set to the length of the table, X(thickness) is relatively small, Z is going to be eiher {0.075} or {0.05}
+            rgba=[0, 0, 0, 1], #NOTE(dhanush) : Setting color to black
+            material=blackwood,
+            density=1000000.0  #HACK(dhanush) :  we just bumped the denistiy so high, its basically fixed
+        )
+
+
+        cubes = [self.cubeA, self.cubeB, self.obstacleA, self.obstacleB] #NOTE(dhanush) :  adding obstacles to the list of cubes
         # Create placement initializer
         if self.placement_initializer is not None:
             self.placement_initializer.reset()
@@ -426,7 +437,9 @@ class Block_Pair(SingleArmEnv):
         # Additional object references from this env
         self.cubeA_body_id = self.sim.model.body_name2id(self.cubeA.root_body)
         self.cubeB_body_id = self.sim.model.body_name2id(self.cubeB.root_body)
-        self.obstacle_body_id = self.sim.model.body_name2id(self.obstacle.root_body) #NOTE(dhanush) : Added body ID of obstacle
+        self.obstacleA_body_id = self.sim.model.body_name2id(self.obstacleA.root_body) #NOTE(dhanush) : Added body ID of obstacle
+        self.obstacleB_body_id = self.sim.model.body_name2id(self.obstacleB.root_body) #NOTE(dhanush) : Added body ID of obstacle
+
 
     def _reset_internal(self):
         """

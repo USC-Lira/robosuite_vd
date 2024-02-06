@@ -959,16 +959,23 @@ class Block_Obstacle_Sampler(ObjectPositionSampler):
             z_offset=z_offset,
         )
 
-    def _sample_x(self, object_horizontal_radius, obj_index):
+    def _sample_x(self, object_horizontal_radius, obj_index, random_bool):
         """
         Samples the x location for a given object
 
         Args:
             object_horizontal_radius (float): Radius of the object currently being sampled for
+            obj_index (int): Index of the object
+            random_bool (bool): Random boolean value
 
         Returns:
             float: sampled x position
         """
+
+        X_DISP_OBS = 0.1 #NOTE(dhanush) : this will determine the x offset of the obstacles
+        X_DISP_BLOCKS = 0.05 #NOTE(dhanush) : this number will be applied on 0 offset X axis
+
+
         x_min, x_max = self.x_range
         # if self.ensure_object_boundary_in_range: TODO(dhanush) : Check if commenting this is fine
             # minimum += object_horizontal_radius
@@ -976,31 +983,51 @@ class Block_Obstacle_Sampler(ObjectPositionSampler):
         
         # SAMPLE based on the object index
         if obj_index == 0: #NOTE(dhanush) : RED BLOCK index
-            x_max = 0.0 + 0.05 #TODO(dhanush) : check if this fine
-            x_min = 0.0 - 0.05 
+            x_max = 0.0 + X_DISP_BLOCKS #TODO(dhanush) : check if this fine
+            x_min = 0.0 - X_DISP_BLOCKS 
 
         elif obj_index == 1: #NOTE(dhanush) : GREEN BLOCK index
-            x_max = 0.0 + 0.05 #TODO(dhanush) : check if this fine
-            x_min = 0.0 - 0.05 
+            x_max = 0.0 + X_DISP_BLOCKS #TODO(dhanush) : check if this fine
+            x_min = 0.0 - X_DISP_BLOCKS 
 
-        else: #NOTE(dhanush) : Obstacle BLOCK index
-            x_min = 0 #NOTE(dhanush) : We just want the obstacle in the middle
-            x_max = 0 
+
+        if random_bool:
+
+            if obj_index == 2: #NOTE(dhanush) : corresponds to the first obstacle
+                x_min, x_max = X_DISP_OBS, X_DISP_OBS
+
+            elif obj_index == 3: #NOTE(dhanush) : corresponds to the second obstacle
+                x_min, x_max = -X_DISP_OBS, -X_DISP_OBS  
+
+        if not random_bool:
+
+            if obj_index == 2: #NOTE(dhanush) : corresponds to the first obstacle
+                x_min, x_max = -X_DISP_OBS, -X_DISP_OBS
+
+            elif obj_index == 3: #NOTE(dhanush) : corresponds to the second obstacle
+                x_min, x_max = X_DISP_OBS, X_DISP_OBS  
 
         return np.random.uniform(high=x_max, low=x_min)
 
 
-    def _sample_y(self, object_horizontal_radius, obj_index):
+    def _sample_y(self, object_horizontal_radius, obj_index, random_bool):
         """
         Samples the y location for a given object, placing it in different halves of the Y range based on its index.
 
         Args:
             object_horizontal_radius (float): Radius of the object currently being sampled for.
             obj_index (int): Index of the object, used to determine which half of the Y range to use.
+            random_bool (bool): Random boolean value
 
         Returns:
             float: sampled y position.
         """
+
+        Y_DISP_OBS = 0.1 #NOTE(dhanush) : this will determine the Y offset of the obstacles
+        Y_DISP_BLOCKS = 0.25 #NOTE(dhanush) : this number must greater than combined block and obstacle width + Y_DISP_OBS
+        Y_DISP_BLOCKS_VAR_TO_LEFT = 0.075 #NOTE(dhanush):  this number is applid on top of the Y_DISP_BLOCKS
+ 
+
         y_min, y_max = self.y_range
         # if self.ensure_object_boundary_in_range:
         #     y_min += object_horizontal_radius
@@ -1008,18 +1035,33 @@ class Block_Obstacle_Sampler(ObjectPositionSampler):
 
         # Divide the Y range into two halves and sample based on the object index
         if obj_index == 0: #NOTE(dhanush) : RED BLOCK index
-            y_max = (y_min + (y_max - y_min) / 2) - 0.2 # FIRST TERM IS ZERO 
-            y_min = y_max - 0.075  # LITLLE LEFT OF THE MAX
+            y_max = (y_min + (y_max - y_min) / 2) - Y_DISP_BLOCKS # FIRST TERM IS ZERO 
+            y_min = y_max - Y_DISP_BLOCKS_VAR_TO_LEFT  # LITLLE LEFT OF THE MAX
 
         elif obj_index == 1: #NOTE(dhanush) : GREEN BLOCK index
-            y_min = (y_min + (y_max - y_min) / 2) + 0.2 #Second block min is set to the center/end of left half of table
-            y_max = y_min + 0.075 # LITTLE RIGHT OF THE MIN
+            y_min = (y_min + (y_max - y_min) / 2) + Y_DISP_BLOCKS #Second block min is set to the center/end of left half of table
+            y_max = y_min + Y_DISP_BLOCKS_VAR_TO_LEFT # LITTLE RIGHT OF THE MIN
 
-        else: #NOTE(dhanush) : Obstacle BLOCK index
-            y_min = 0 #NOTE(dhanush) : We just want the obstacle in the middle
-            y_max = 0 
+        
+
+        if random_bool:
+
+            if obj_index == 2: #NOTE(dhanush) : corresponds to the first obstacle
+                y_min, y_max = Y_DISP_OBS, Y_DISP_OBS
+
+            elif obj_index == 3: #NOTE(dhanush) : corresponds to the second obstacle
+                y_min, y_max = -Y_DISP_OBS, -Y_DISP_OBS  
+
+        if not random_bool:
+
+            if obj_index == 2: #NOTE(dhanush) : corresponds to the first obstacle
+                y_min, y_max = Y_DISP_OBS, Y_DISP_OBS
+
+            elif obj_index == 3: #NOTE(dhanush) : corresponds to the second obstacle
+                y_min, y_max = -Y_DISP_OBS, -Y_DISP_OBS  
 
         return np.random.uniform(high=y_max, low=y_min)
+
 
     def _sample_quat(self):
         """
@@ -1098,7 +1140,10 @@ class Block_Obstacle_Sampler(ObjectPositionSampler):
                 base_offset.shape[0] == 3
             ), "Invalid reference received. Should be (x,y,z) 3-tuple, but got: {}".format(base_offset)
 
+
+         #NOTE(dhanush) : to get the diagonal configs for the obstacle blocks
         # Sample pos and quat for all objects assigned to this sampler
+        random_config = np.random.choice([True, False])
         for j, obj in enumerate(self.mujoco_objects):
             # First make sure the currently sampled object hasn't already been sampled
             assert obj.name not in placed_objects, "Object '{}' has already been sampled!".format(obj.name)
@@ -1107,9 +1152,10 @@ class Block_Obstacle_Sampler(ObjectPositionSampler):
             bottom_offset = obj.bottom_offset
             # import pdb; pdb.set_trace()
             success = False
+            
             for i in range(5000):  # 5000 retries
-                object_x = self._sample_x(horizontal_radius, j) + base_offset[0]
-                object_y = self._sample_y(horizontal_radius, j) + base_offset[1]
+                object_x = self._sample_x(horizontal_radius, j, random_config) + base_offset[0]
+                object_y = self._sample_y(horizontal_radius, j, random_config) + base_offset[1]
                 object_z = self.z_offset + base_offset[2]
                 if on_top:
                     object_z -= bottom_offset[-1]
