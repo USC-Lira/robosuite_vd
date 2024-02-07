@@ -383,8 +383,8 @@ class Block_Pair(SingleArmEnv):
         #NOTE(dhanush) : positive X is towards user, positive Y is towards right direction of render screen
         self.obstacleA = ObstacleObject( #NOTE(dhanush) : added obstacle as a Box object
             name="obstacleA",
-            size_min=[0.025, 0.025, 0.075], #NOTE(dhanush) : Either the max or the min will be used as the size
-            size_max=[0.025, 0.025, 0.075], #NOTE (dhanush) : The Y Dimension is set to the length of the table, X(thickness) is relatively small, Z is going to be eiher {0.075} or {0.05}
+            size_min=[0.025, 0.025, 0.05], #NOTE(dhanush) : Either the max or the min will be used as the size
+            size_max=[0.025, 0.025, 0.05], #NOTE (dhanush) : The Y Dimension is set to the length of the table, X(thickness) is relatively small, Z is going to be eiher {0.075} or {0.05}
             rgba=[0, 0, 0, 1], #NOTE(dhanush) : Setting color to black
             material=blackwood,
             density=1000000.0  #HACK(dhanush) :  we just bumped the denistiy so high, its basically fixed
@@ -393,8 +393,8 @@ class Block_Pair(SingleArmEnv):
         #NOTE(dhanush) : positive X is towards user, positive Y is towards right direction of render screen
         self.obstacleB = ObstacleObject( #NOTE(dhanush) : added obstacle as a Box object
             name="obstacleB",
-            size_min=[0.025, 0.025, 0.075], #NOTE(dhanush) : Either the max or the min will be used as the size
-            size_max=[0.025, 0.025, 0.075], #NOTE (dhanush) : The Y Dimension is set to the length of the table, X(thickness) is relatively small, Z is going to be eiher {0.075} or {0.05}
+            size_min=[0.025, 0.025, 0.05], #NOTE(dhanush) : Either the max or the min will be used as the size
+            size_max=[0.025, 0.025, 0.05], #NOTE (dhanush) : The Y Dimension is set to the length of the table, X(thickness) is relatively small, Z is going to be eiher {0.075} or {0.05}
             rgba=[0, 0, 0, 1], #NOTE(dhanush) : Setting color to black
             material=blackwood,
             density=1000000.0  #HACK(dhanush) :  we just bumped the denistiy so high, its basically fixed
