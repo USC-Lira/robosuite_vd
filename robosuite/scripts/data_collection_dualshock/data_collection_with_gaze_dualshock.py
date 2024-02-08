@@ -20,9 +20,16 @@ import robosuite.macros as macros
 from robosuite import load_controller_config
 from robosuite.utils.input_utils import input2action
 from robosuite.wrappers import DataCollectionWrapper, VisualizationWrapper
+from robosuite.wrappers.data_collection_wrapper import DataCollectionWrapper_gaze
+import robosuite.utils.transform_utils as T
+from robosuite.utils.gamepad_utils import *
+
+from robosuite.gaze_stuff.gaze_socket_client import SimpleClient
+from robosuite.gaze_stuff.gaze_data_utils import gaze_data_util
+import pdb
 
 
-def collect_human_trajectory(env, device, arm, env_configuration):
+def collect_human_trajectory(policy, env, device, arm, env_configuration):
     """
     Use the device (keyboard or SpaceNav 3D mouse) to collect a demonstration.
     The rollout trajectory is saved to files in npz format.
@@ -50,23 +57,49 @@ def collect_human_trajectory(env, device, arm, env_configuration):
         # Set active robot
         active_robot = env.robots[0] if env_configuration == "bimanual" else env.robots[arm == "left"]
 
-        # Get the newest action
-        action, grasp = input2action(
-            device=device, robot=active_robot, active_arm=arm, env_configuration=env_configuration
-        )
+        # ---keybaord-stuff------#
+        # # Get the newest action
+        # action, grasp = input2action(
+        #     device=device, robot=active_robot, active_arm=arm, env_configuration=env_configuration
+        # )
 
-        # If action is none, then this a reset so we should break
-        if action is None:
+        # # If action is none, then this a reset so we should break
+        # if action is None:
+        #     break
+        # ---keybaord-stuff------#
+
+        action, control_enabled, break_episode = get_gamepad_action_robosuite(policy)
+
+        if break_episode:
             break
 
-        action = np.clip(action, -1, 1)
+        if not control_enabled:  # STEP ONLY WHEN ENABLED
+            continue
 
 
         # Run environment step
-        print(action)
+        # print(action) #TODO: for checking the clippping done in the VR class
+        # pdb.set_trace()
 
-        import pdb; pdb.set_trace()
-        env.step(action)
+
+        # Gaze Data from sensor
+        gaze_data_dict_adj, gaze_data_raw = gaze_util_obj.gaze_pixels(gaze_client.get_latest_message()) # Pollling Code
+
+        # print(gaze_data_raw)
+
+        # --Format of Data -- #
+        # gaze_data_dict_adj['pixel_x']
+        # gaze_data_dict_adj['pixel_y']
+        # gaze_data_raw['FPOGX']
+        # gaze_data_raw['FPOGY']
+        #---------------------#
+
+        # Gaze data (FPOGX, FPOGY), in the same format as action
+        gaze_data_np = np.array([gaze_data_raw['FPOGX'], gaze_data_raw['FPOGY']], dtype=np.float64)
+        
+        # env.step(action) # NOTE(dhanush) : THIS WAS MEANT FOR THE ORIGINAL WRAPPER
+        env.step(action, gaze_data_np) # NOTE(dhanush) : THIS WAS MEANT FOR THE MODIFIED WRAPPER
+
         env.render()
 
         # Also break if we complete the task
@@ -86,7 +119,7 @@ def collect_human_trajectory(env, device, arm, env_configuration):
     env.close()
 
 
-def gather_demonstrations_as_hdf5(directory, out_dir, env_info):
+def gather_demonstrations_as_hdf5(directory, out_dir, env_info): #TODO: verify modification made for gaze
     """
     Gathers the demonstrations saved in @directory into a
     single hdf5 file.
@@ -128,6 +161,7 @@ def gather_demonstrations_as_hdf5(directory, out_dir, env_info):
         state_paths = os.path.join(directory, ep_directory, "state_*.npz")
         states = []
         actions = []
+        gazes = []
         success = False
 
         for state_file in sorted(glob(state_paths)):
@@ -137,6 +171,10 @@ def gather_demonstrations_as_hdf5(directory, out_dir, env_info):
             states.extend(dic["states"])
             for ai in dic["action_infos"]:
                 actions.append(ai["actions"])
+
+            for gi in dic["gaze_infos"]:
+                gazes.append(gi['gazes'])
+
             success = success or dic["successful"]
 
         if len(states) == 0:
@@ -150,6 +188,8 @@ def gather_demonstrations_as_hdf5(directory, out_dir, env_info):
             # so we end up with an extra state at the end.
             del states[-1]
             assert len(states) == len(actions)
+            assert len(states) == len(gazes)
+
 
             num_eps += 1
             ep_data_grp = grp.create_group("demo_{}".format(num_eps))
@@ -160,9 +200,11 @@ def gather_demonstrations_as_hdf5(directory, out_dir, env_info):
                 xml_str = f.read()
             ep_data_grp.attrs["model_file"] = xml_str
 
-            # write datasets for states and actions
+            # write datasets for states and actions and gaze
             ep_data_grp.create_dataset("states", data=np.array(states))
             ep_data_grp.create_dataset("actions", data=np.array(actions))
+            ep_data_grp.create_dataset("gazes", data=np.array(gazes))
+
         else:
             print("Demonstration is unsuccessful and has NOT been saved")
 
@@ -185,6 +227,7 @@ if __name__ == "__main__":
         type=str,
         default=os.path.join(suite.models.assets_root, "demonstrations"),
     )
+    # parser.add_argument("--environment", type=str, default="Lifteither")
     parser.add_argument("--environment", type=str, default="Block_Pair")
     parser.add_argument("--robots", nargs="+", type=str, default="Panda", help="Which robot(s) to use in the env")
     parser.add_argument(
@@ -202,7 +245,22 @@ if __name__ == "__main__":
 
     # Get controller config
     controller_config = load_controller_config(default_controller=args.controller)
+    controller_config['kp'] = 700 #TODO: meant for VR Controller
 
+    # TODO: fix this Integration, dhanush
+
+    #----Gaze Sensor Integration ----#
+    gaze_client = SimpleClient('192.168.1.93', 5478, 96)
+    gaze_client.connect_to_server()
+    gaze_util_obj = gaze_data_util(3440, 1440)
+
+    # --Format of Data -- #
+    # (int(gaze_data_dict['pixel_x'])
+    # int(gaze_data_dict['pixel_y']))
+    #--------------------#
+
+
+    
     # Create argument configuration
     config = {
         "env_name": args.environment,
@@ -234,7 +292,7 @@ if __name__ == "__main__":
 
     # wrap the environment with data collection wrapper
     tmp_directory = "/tmp/{}".format(str(time.time()).replace(".", "_"))
-    env = DataCollectionWrapper(env, tmp_directory)
+    env = DataCollectionWrapper_gaze(env, tmp_directory) # NOTE(dhanush) : USING A MODIFIED WRAPPER
 
     # initialize device
     if args.device == "keyboard":
@@ -253,7 +311,13 @@ if __name__ == "__main__":
     new_dir = os.path.join(args.directory, "{}_{}".format(t1, t2))
     os.makedirs(new_dir)
 
-    # collect demonstrations
+    policy = connect_gamepad()  # NOTE(dhanush) : This is the instance for the Dual Shock Controller
+
+    # COLLECT DEMONSTRATIONS
     while True:
-        collect_human_trajectory(env, device, args.arm, args.config)
+        collect_human_trajectory(policy, env, device, args.arm, args.config)
         gather_demonstrations_as_hdf5(tmp_directory, new_dir, env_info)
+
+    
+    # TERMINATING CONNECTION TO GAZE SOCKET
+    gaze_client.disconnect()
