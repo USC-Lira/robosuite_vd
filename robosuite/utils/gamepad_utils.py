@@ -21,9 +21,9 @@ def get_gamepad_action_robosuite(gamepad):
 
     # NOTE(dhanush) : POSITION INPUT
     action = np.zeros((7,))  # NOTE(dhanush) : TO STORE ACTION IN THIS VAR
-    action[0] = 0.5 *  gamepad.axis("LEFT-Y")  # NOTE(dhanush) : CORRESPONDS TO W/S Keyboard
-    action[1] = 0.5 * gamepad.axis("LEFT-X")  # NOTE(dhanush) : CORRESPONDS TO A/D Keyboard
-    action[2] =  - 0.5 * gamepad.axis("RIGHT-Y")  # NOTE(dhanush) : CORRESPONDS TO VERTICAL MOTION IN Z AXIS
+    action[0] = 0.1 *  gamepad.axis("LEFT-Y")  # NOTE(dhanush) : CORRESPONDS TO W/S Keyboard
+    action[1] = 0.1 * gamepad.axis("LEFT-X")  # NOTE(dhanush) : CORRESPONDS TO A/D Keyboard
+    action[2] =  - 0.1 * gamepad.axis("RIGHT-Y")  # NOTE(dhanush) : CORRESPONDS TO VERTICAL MOTION IN Z AXIS
     # NOTE(dhanush) :rotation output is limited in the range [-0.3, 0.3]
     action[3] = 0  # NOTE(dhanush) : NO ROTATION INPUT, CORRESPONDS TO ROTATION ABOUT X AXIS
     action[4] = 0  # NOTE(dhanush) : NO ROTATION INPUT, CORRESPONDS TO ROTATION ABOUT Y AXIS

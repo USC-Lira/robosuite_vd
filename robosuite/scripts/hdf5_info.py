@@ -93,6 +93,7 @@ def read_and_cluster(file_path):
         data_group = file['data']
 
         for demo_name, demo_group in data_group.items():
+            import pdb; pdb.set_trace()
             if 'states' in demo_group:
                 states = demo_group['states'][:]
                 last_state_slice = states[-1][23:26]
@@ -130,4 +131,4 @@ def read_and_cluster(file_path):
     return cluster_1, cluster_2
 
 # Usage example
-cluster_1, cluster_2 = read_and_cluster('/home/dpenmets/LIRA_work/robosuite_vd/robosuite/scripts/27_28_green_comb.hdf5')
+cluster_1, cluster_2 = read_and_cluster('/home/dhanush/robosuite_vd/robosuite/models/assets/demonstrations/demo_DATA_BP_DUAL_SHOCK/demo.hdf5')

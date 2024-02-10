@@ -207,7 +207,7 @@ class Block_Pair(SingleArmEnv):
             renderer_config=renderer_config,
         )
 
-    def reward(self, action):
+    def reward(self, action=None): #NOTE(dhanush) : HAD TO PUT DEFUALT NONE, FOR CONVERSION AND THIS MAKES SENSE
         """
         Reward function for the task.
 

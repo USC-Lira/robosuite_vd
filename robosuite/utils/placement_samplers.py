@@ -972,7 +972,7 @@ class Block_Obstacle_Sampler(ObjectPositionSampler):
             float: sampled x position
         """
 
-        X_DISP_OBS = 0.15 #NOTE(dhanush) : this will determine the x offset of the obstacles
+        X_DISP_OBS = 0.075 #NOTE(dhanush) : this will determine the x offset of the obstacles
         X_DISP_BLOCKS = 0.05 #NOTE(dhanush) : this number will be applied on 0 offset X axis
 
 
@@ -1024,7 +1024,7 @@ class Block_Obstacle_Sampler(ObjectPositionSampler):
         """
 
         Y_DISP_OBS = 0.05 #NOTE(dhanush) : this will determine the Y offset of the obstacles
-        Y_DISP_BLOCKS = 0.1 #NOTE(dhanush) : this number must greater than combined block and obstacle width + Y_DISP_OBS
+        Y_DISP_BLOCKS = 0.155 #NOTE(dhanush) : this number must greater than combined block and obstacle width + Y_DISP_OBS
         Y_DISP_BLOCKS_VAR_TO_LEFT = 0.075 #NOTE(dhanush):  this number is applid on top of the Y_DISP_BLOCKS
  
 
