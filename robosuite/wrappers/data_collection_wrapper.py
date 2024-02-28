@@ -5,6 +5,7 @@ This data collection wrapper is useful for collecting demonstrations.
 
 import os
 import time
+import random  # NOTE(dhanush) : This module for varying the EEF start position
 
 import numpy as np
 
@@ -135,7 +136,11 @@ class DataCollectionWrapper(Wrapper):
             OrderedDict: Environment observation space after reset occurs
         """
         ret = super().reset()
+        # ret['robot0_eef_pos']  # NOTE(dhanush) : This is the robot EEF position when we reset the episode
+        # ret['robot0_eef_pos'][1] = random.uniform(-10, 10)
+        # import pdb; pdb.set_trace()
         self._start_new_episode()
+        # pdb.set_trace()
         return ret
 
     def step(self, action):
@@ -313,6 +318,7 @@ class DataCollectionWrapper_gaze(Wrapper):
             OrderedDict: Environment observation space after reset occurs
         """
         ret = super().reset()
+        # ret['robot0_eef_pos'][1] = random.uniform(-0.4, 0.4)  #NOTE(dhanush) : TO VARY THE EEF POSITION
         self._start_new_episode()
         return ret
 
