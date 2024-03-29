@@ -24,6 +24,7 @@ from robosuite.wrappers.data_collection_wrapper import DataCollectionWrapper_gaz
 import robosuite.utils.transform_utils as T
 from robosuite.utils.gamepad_utils import *
 
+# NOTE(dhanush) : THESE ARE RELATED TO THE GAZE STUFF
 from robosuite.gaze_stuff.gaze_socket_client import SimpleClient
 from robosuite.gaze_stuff.gaze_data_utils import gaze_data_util
 import pdb

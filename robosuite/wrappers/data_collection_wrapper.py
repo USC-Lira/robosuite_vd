@@ -137,6 +137,7 @@ class DataCollectionWrapper(Wrapper):
         """
         ret = super().reset()
         # ret['robot0_eef_pos']  # NOTE(dhanush) : This is the robot EEF position when we reset the episode
+        # NOTE(dhanush) : THIS METHOD FOR SETTING THE INIT POSITION OF THE GRIPPER DOES NOT WORK
         # ret['robot0_eef_pos'][1] = random.uniform(-10, 10)
         # import pdb; pdb.set_trace()
         self._start_new_episode()
@@ -318,7 +319,10 @@ class DataCollectionWrapper_gaze(Wrapper):
             OrderedDict: Environment observation space after reset occurs
         """
         ret = super().reset()
+
+        # NOTE(dhanush) : THIS DOES NOT WORK
         # ret['robot0_eef_pos'][1] = random.uniform(-0.4, 0.4)  #NOTE(dhanush) : TO VARY THE EEF POSITION
+        
         self._start_new_episode()
         return ret
 

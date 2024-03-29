@@ -139,7 +139,7 @@ class Lifteither(SingleArmEnv):
         env_configuration="default",
         controller_configs=None,
         gripper_types="default",
-        initialization_noise= {'magnitude': 0.25, 'type': 'gaussian'},  #NOTE(dhanush) : JOINT INIT RANDOMIZATION
+        initialization_noise= {'magnitude': 0.02, 'type': 'gaussian'},  #NOTE(dhanush) : JOINT INIT RANDOMIZATION
         table_full_size=(0.8, 0.8, 0.05),
         table_friction=(1.0, 5e-3, 1e-4),
         use_camera_obs=True,
