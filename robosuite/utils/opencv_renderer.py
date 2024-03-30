@@ -7,9 +7,9 @@ import numpy as np
 
 class OpenCVRenderer:
     def __init__(self, sim):
-        # TODO: update this appropriately - need to get screen dimensions
-        self.width = 3840
-        self.height = 2160
+        # FIXME(dhanush): update this appropriately - need to get screen dimensions
+        self.width = 1920
+        self.height = 1080
 
         self.sim = sim
         self.camera_name = self.sim.model.camera_id2name(0)
