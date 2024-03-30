@@ -1,5 +1,5 @@
-from robosuite.Gamepad.Gamepad import Gamepad, available
-from robosuite.Gamepad.Controllers import PS4
+from robosuite.Gamepad_LIRA.Gamepad import Gamepad, available
+from robosuite.Gamepad_LIRA.Controllers import PS4
 
 import numpy as np
 import time
