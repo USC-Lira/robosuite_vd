@@ -1,4 +1,3 @@
-# NOTE(dhanush) : Slightly modified script to also use gaze information in the rendering, no video saving done here.
 """
 A convenience script to playback random demonstrations from
 a set of demonstrations stored in a hdf5 file.
@@ -56,6 +55,7 @@ if __name__ == "__main__":
 
     # list of all demonstrations episodes
     demos = list(f["data"].keys())
+    print(len(demos))
 
     while True:
         print("Playing back random episode... (press ESC to quit)")
@@ -87,9 +87,9 @@ if __name__ == "__main__":
             num_actions = actions.shape[0]
 
             # for j, action in enumerate(actions):
-            for j, (action, gaze) in enumerate(zip(actions, gazes)):  # NOTE(dhanush) : Slightly modified the code to also loop gaze
+            for j, (action, gaze) in enumerate(zip(actions, gazes)):
                 env.step(action)
-                env.render(gaze=True, gaze_data=gaze)  # NOTE(dhanush) : Rendering with gaze
+                env.render(gaze=True, gaze_data=gaze)
                 # env.render()
 
                 if j < num_actions - 1:

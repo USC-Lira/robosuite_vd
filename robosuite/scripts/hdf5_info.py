@@ -1,5 +1,3 @@
-# NOTE(dhanush) : Simple Script to get information about the collected data
-
 # import h5py
 # import pdb
 
