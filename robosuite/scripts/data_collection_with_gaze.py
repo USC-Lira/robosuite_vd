@@ -1,6 +1,6 @@
 """
 A script to collect a batch of human demonstrations.
-# NOTE(dhanush) : This is meant for collecting demonstrations using the Meta Quest Controller with gaze
+
 The demonstrations can be played back using the `playback_demonstrations_from_hdf5.py` script.
 """
 

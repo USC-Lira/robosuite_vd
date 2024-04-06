@@ -8,7 +8,6 @@ import argparse
 import datetime
 import json
 import os
-import pdb
 import shutil
 import time
 from glob import glob
@@ -60,11 +59,13 @@ def collect_human_trajectory(env, device, arm, env_configuration):
         if action is None:
             break
 
-        action = np.clip(action, -1, 1)  # NOTE(dhanush) : This is to prevent action going out of range
+        action = np.clip(action, -1, 1)
+
 
         # Run environment step
         print(action)
 
+        import pdb; pdb.set_trace()
         env.step(action)
         env.render()
 
@@ -184,7 +185,7 @@ if __name__ == "__main__":
         type=str,
         default=os.path.join(suite.models.assets_root, "demonstrations"),
     )
-    parser.add_argument("--environment", type=str, default="Block_Pair")  # NOTE(dhanush) : Default task  setting
+    parser.add_argument("--environment", type=str, default="Block_Pair")
     parser.add_argument("--robots", nargs="+", type=str, default="Panda", help="Which robot(s) to use in the env")
     parser.add_argument(
         "--config", type=str, default="single-arm-opposed", help="Specified environment configuration if necessary"
@@ -230,8 +231,6 @@ if __name__ == "__main__":
 
     # Grab reference to controller config and convert it to json-encoded string
     env_info = json.dumps(config)
-
-    import pdb; pdb.set_trace()
 
     # wrap the environment with data collection wrapper
     tmp_directory = "/tmp/{}".format(str(time.time()).replace(".", "_"))

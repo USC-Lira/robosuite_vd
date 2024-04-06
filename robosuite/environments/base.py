@@ -443,7 +443,7 @@ class MujocoEnv(metaclass=EnvMeta):
         """
         raise NotImplementedError
 
-    def render(self, gaze=False, gaze_data=None):  # FEATURE(dhanush): FUNCTION USED TO RENDER (+/-) GAZE
+    def render(self, gaze=False, gaze_data=None): #TODO: dhanush, check this function #NOTE(dhanush): Used to render the with and without gaze
         """
         Renders to an on-screen window.
         """
@@ -457,7 +457,7 @@ class MujocoEnv(metaclass=EnvMeta):
             # return image
 
             # Code, meant where we pass the gaze data to the OpenCV render method
-            self.viewer.render_gaze(gaze_data=gaze_data)  # Gaze data to be passed (FPOGx, FPOGy)
+            self.viewer.render_gaze(gaze_data=gaze_data) # Gaze data to be passed (FPOGx, FPOGy)
 
 
 
