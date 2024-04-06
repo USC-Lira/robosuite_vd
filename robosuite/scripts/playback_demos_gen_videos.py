@@ -97,5 +97,5 @@ if __name__ == "__main__":
 
                 frame_count += 1
 
-    writer.close()
+    writer.close() #
     f.close()
