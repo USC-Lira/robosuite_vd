@@ -6,7 +6,7 @@ import numpy as np
 # import the oculcu reader object here
 
 import sys
-sys.path.append('/home/santosh/PycharmProjects/oculus_reader')
+sys.path.append('/home/dhanush/shreya_gaze_project/robosuite_vd/oculus_reader')
 from oculus_reader.reader import OculusReader
 
 from robosuite.utils.subprocess_utils_VR import run_threaded_command
