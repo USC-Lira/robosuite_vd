@@ -23,6 +23,7 @@ from robosuite.wrappers import DataCollectionWrapper, VisualizationWrapper
 from robosuite.wrappers.data_collection_wrapper import DataCollectionWrapper_gaze
 from robosuite.utils.gamepad_utils import *
 import robosuite.utils.transform_utils as T
+import robosuite.utils.placement_samplers as Sampler
 
 
 def collect_human_trajectory(policy, env, device, arm, env_configuration):
@@ -68,6 +69,7 @@ def collect_human_trajectory(policy, env, device, arm, env_configuration):
         action, control_enabled, break_episode = get_gamepad_action_robosuite(policy)
 
         if break_episode:
+            # print('Closing the environment...')
             break
 
         if not control_enabled:  # STEP ONLY WHEN ENABLED
@@ -82,6 +84,7 @@ def collect_human_trajectory(policy, env, device, arm, env_configuration):
 
         # Also break if we complete the task
         if task_completion_hold_count == 0:
+            # print('Hold Count = 0. Breaking...')
             break
 
         # state machine to check for having a success for 10 consecutive timesteps
@@ -194,7 +197,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--directory",
         type=str,
-        default=os.path.join(suite.models.assets_root, "demonstrations"),
+        default=os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'robosuite', 'models', 'assets')), "demonstrations"),
     )
     parser.add_argument("--environment", type=str, default="Lifteither")
     # parser.add_argument("--environment", type=str, default="Block_Pair")
@@ -227,6 +230,19 @@ if __name__ == "__main__":
     if "TwoArm" in args.environment:
         config["env_configuration"] = args.config
 
+    placement_initializer = Sampler.UniformRandomSampler(
+                name="ObjectSampler",
+                mujoco_objects= "Panda",
+                x_range=[-0.06, 0.06],
+                y_range=[-0.4, 0.4],
+                rotation=None,
+                ensure_object_boundary_in_range=True,
+                ensure_valid_placement=True,
+                reference_pos= np.array((0, 0, 0.8)),
+                z_offset=0.01,
+            )
+
+
     # Create environment
     env = suite.make(
         **config,
@@ -237,6 +253,8 @@ if __name__ == "__main__":
         use_camera_obs=False,
         reward_shaping=True,
         control_freq=20,
+        # placement_initializer = placement_initializer,
+        initialization_noise = {'magnitude': 0.1, 'type': "gaussian"}
     )
 
     # Wrap this with visualization wrapper
@@ -267,8 +285,9 @@ if __name__ == "__main__":
     os.makedirs(new_dir)
 
     policy = connect_gamepad()  # NOTE(dhanush) : This is the instance for the Dual Shock Controller
-
+    # print(new_dir)
     # collect demonstrations
     while True:
         collect_human_trajectory(policy, env, device, args.arm, args.config)
+        print(f'Saving demonstrations to {new_dir}')
         gather_demonstrations_as_hdf5(tmp_directory, new_dir, env_info)
